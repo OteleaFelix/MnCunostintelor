@@ -4,13 +4,13 @@ import { Fab } from "@material-ui/core";
 import { Button } from "@material-ui/core";
 import AddIcon from "@material-ui/icons/Add";
 import PageHeader from "../../components/PageHeader";
+import { Input, InputLabel } from "@material-ui/core";
 import Controls from "../../components/controls/Controls";
 import { Typography } from "@material-ui/core";
 import UploadFiles from "../../components/upload-files.component";
 import { useForm, Form } from "../../components/useForm";
 import * as studentService from "../../services/studentService";
-import { ref, getDownloadURL, uploadBytesResumable } from "firebase/storage";
-import { storage } from "../../firebase";
+import { TextField } from "@material-ui/core";
 
 const genderItems = [
   { id: "male", title: "Male" },
@@ -37,41 +37,25 @@ const initialFValues = {
   year_of_study: "",
   exam_date: new Date(),
   frequency: false,
+  anexa2: undefined,
+  anexa4: undefined,
+  anexa6: undefined,
+  anexa7: undefined,
+  anexa8: undefined,
 };
-
-
 
 export default function StudentForm(props) {
   const { addOrEdit, recordForEdit } = props;
- const [progress, setProgress] = useState(0);
-const formHandler = (e) => {
-  e.preventDefault();
-  const file = e.target[0].files[0];
-  uploadFiles(file);
-};
 
-const uploadFiles = (file) => {
-  //
-  if (!file) return;
-  const sotrageRef = ref(storage, `files/${file.name}`);
-  const uploadTask = uploadBytesResumable(sotrageRef, file);
+  //   const formHandler = (e) => {
+  //     e.preventDefault();
+  //     const file = e.target[0].files[0];
+  //     uploadFiles(file);
+  //   };
 
-  uploadTask.on(
-    "state_changed",
-    (snapshot) => {
-      const prog = Math.round(
-        (snapshot.bytesTransferred / snapshot.totalBytes) * 100
-      );
-      setProgress(prog);
-    },
-    (error) => console.log(error),
-    () => {
-      getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-        console.log("File available at", downloadURL);
-      });
-    }
-  );
-};
+  //   const uploadFiles = (file) => {
+
+  //   };
 
   const validate = (fieldValues = values) => {
     let temp = { ...errors };
@@ -96,6 +80,9 @@ const uploadFiles = (file) => {
         fieldValues.year_of_study < 7
           ? ""
           : "Interval of numbers  should be from 1 to 6";
+    // if ("anexa2" in fieldValues) {
+    //   temp.anexa2 = fieldValues.anexa2 ? "" : "This field is required.";
+    // }
     setErrors({
       ...temp,
     });
@@ -112,6 +99,8 @@ const uploadFiles = (file) => {
       addOrEdit(values, resetForm);
     }
   };
+
+  console.log({ values });
 
   useEffect(() => {
     if (recordForEdit != null)
@@ -203,50 +192,106 @@ const uploadFiles = (file) => {
             value={values.isInvatamantDistantaE}
             onChange={handleInputChange}
           /> */}
-           <div>
-      <form onSubmit={formHandler}>
-        <input type="file" className="input" />
-            <Controls.Button type="submit" text="Upload" />
-      </form>
-      <hr />
-      <h2>Uploading done {progress}%</h2>
-    </div>
-    <div>
-      <form onSubmit={formHandler}>
-        <input type="file" className="input" />
-        <Controls.Button type="submit" text="Upload" />
-      </form>
-      <hr />
-      <h2>Uploading done {progress}%</h2>
-    </div>
-    <div>
-      <form onSubmit={formHandler}>
-        <input type="file" className="input" />
-        <Controls.Button type="submit" text="Upload" />
-      </form>
-      <hr />
-      <h2>Uploading done {progress}%</h2>
-    </div>
-    <div>
-      <form onSubmit={formHandler}>
-        <input type="file" className="input" />
-        <Controls.Button type="submit" text="Upload" />
-      </form>
-      <hr />
-      <h2>Uploading done {progress}%</h2>
-    </div>
-    <div>
-      <form onSubmit={formHandler}>
-        <input type="file" className="input" />
-        <Controls.Button type="submit" text="Upload" />
-      </form>
-      <hr />
-      <h2>Uploading done {progress}%</h2>
-    </div>
-    
           <div>
-            <Controls.Button type="submit" text="Submit" />
-            <Controls.Button text="Reset" color="default" onClick={resetForm} />
+            <label style={{ marginLeft: 10 }}>
+              Cerere de alegere a temei lucrarii si a conducatorului stiintific{" "}
+              {props.progress.type === "anexa2" && (
+                <span>(Uploading done {props.progress.precented}%)</span>
+              )}
+            </label>
+            <br />
+            <TextField
+              type="file"
+              variant="outlined"
+              name="anexa2"
+              onChange={handleInputChange}
+              error={errors.anexa2}
+              helperText={errors.anexa2}
+            />
+          </div>
+          <div>
+            <div>
+              <label style={{ marginLeft: 10 }}>
+                Fisa lucrarii{" "}
+                {props.progress.type === "anexa4" && (
+                  <span>(Uploading done {props.progress.precented}%)</span>
+                )}
+              </label>
+              <br />
+              <TextField
+                type="file"
+                variant="outlined"
+                name="anexa4"
+                onChange={handleInputChange}
+                error={errors.anexa4}
+                helperText={errors.anexa4}
+              />
+            </div>
+            <div>
+              <div>
+                <label style={{ marginLeft: 10 }}>
+                  Cerere de inscriere la examen{" "}
+                  {props.progress.type === "anexa6" && (
+                    <span>(Uploading done {props.progress.precented}%)</span>
+                  )}
+                </label>
+                <br />
+                <TextField
+                  type="file"
+                  variant="outlined"
+                  name="anexa6"
+                  onChange={handleInputChange}
+                  error={errors.anexa6}
+                  helperText={errors.anexa6}
+                />
+              </div>
+              <div>
+                <div>
+                  <label style={{ marginLeft: 10 }}>
+                    Informatii prelucrare date cu caracter personal{" "}
+                    {props.progress.type === "anexa7" && (
+                      <span>(Uploading done {props.progress.precented}%)</span>
+                    )}
+                  </label>
+                  <br />
+                  <TextField
+                    type="file"
+                    variant="outlined"
+                    name="anexa7"
+                    onChange={handleInputChange}
+                    error={errors.anexa7}
+                    helperText={errors.anexa7}
+                  />
+                </div>
+              </div>
+              <div>
+                <div>
+                  <label style={{ marginLeft: 10 }}>
+                    Declaratie privind originalitatea lucrarii{" "}
+                    {props.progress.type === "anexa8" && (
+                      <span>(Uploading done {props.progress.precented}%)</span>
+                    )}
+                  </label>
+                  <br />
+                  <TextField
+                    type="file"
+                    variant="outlined"
+                    name="anexa8"
+                    onChange={handleInputChange}
+                    error={errors.anexa8}
+                    helperText={errors.anexa8}
+                  />
+                </div>
+              </div>
+            </div>
+            <div style={{ marginTop: 15 }}>
+              <Controls.Button type="submit" text="Submit" />
+              <Controls.Button
+                text="Reset"
+                color="default"
+                onClick={resetForm}
+              />
+            </div>
           </div>
         </Grid>
       </Grid>

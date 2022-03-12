@@ -4,6 +4,7 @@ import "./App.css";
 import { CssBaseline, createMuiTheme, ThemeProvider } from "@material-ui/core";
 
 import { Routes } from "../route/index";
+
 // import PageHeader from "../components/PageHeader";
 // import { db } from "../firebase";
 // import {
@@ -59,6 +60,7 @@ function App() {
   //       //   });
   //     })();
   //   }, [todoRef]);
+
   return (
     <ThemeProvider theme={theme}>
       <Routes />

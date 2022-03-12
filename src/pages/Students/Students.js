@@ -1,3 +1,4 @@
+/* eslint-disable eqeqeq */
 import React, { useCallback, useEffect, useState } from "react";
 import StudentForm from "./StudentForm";
 import PageHeader from "../../components/PageHeader";
@@ -19,6 +20,7 @@ import {
   doc,
   addDoc,
   updateDoc,
+  deleteDoc,
 } from "firebase/firestore";
 import {
   getStorage,
@@ -28,14 +30,16 @@ import {
 } from "firebase/storage";
 
 import useTable from "../../components/useTable";
-import * as studentService from "../../services/studentService";
+// import * as studentService from "../../services/studentService";
 import Controls from "../../components/controls/Controls";
 import { Search } from "@material-ui/icons";
 import AddIcon from "@material-ui/icons/Add";
 import Popup from "../../components/Popup";
 import EditOutlinedIcon from "@material-ui/icons/EditOutlined";
 import CloseIcon from "@material-ui/icons/Close";
-import { db, firebaseApp } from "../../firebase";
+
+import { db, storage } from "../../firebase";
+import { useHistory } from "react-router-dom";
 
 const useStyles = makeStyles((theme) => ({
   pageContent: {
@@ -73,8 +77,10 @@ const headCells = [
 
 export default function Students() {
   const classes = useStyles();
+  const history = useHistory();
   const [recordForEdit, setRecordForEdit] = useState(null);
   const [records, setRecords] = useState([]);
+  const [progress, setProgress] = useState({ type: "", precented: 0 });
   const [filterFn, setFilterFn] = useState({
     fn: (items) => {
       return items;
@@ -99,11 +105,26 @@ export default function Students() {
   };
 
   const getFireStoreDocuments = useCallback(async (user) => {
-    const userDocumentsQ = query(
-      collection(db, "documents"),
-      where("user_id", "==", user.uid)
+    const getAuthUserQuery = query(
+      collection(db, "users"),
+      where("uid", "==", user.uid)
     );
-    console.log(user);
+    const authUser = await getDocs(getAuthUserQuery);
+    let userRole = "";
+    if (authUser.docs.length > 0) {
+      authUser.forEach((user) => (userRole = user.data().role));
+    }
+
+    let userDocumentsQ;
+    if (userRole !== "admin") {
+      userDocumentsQ = query(
+        collection(db, "documents"),
+        where("user_id", "==", user.uid)
+      );
+    } else {
+      userDocumentsQ = query(collection(db, "documents"));
+    }
+
     const documentes = await getDocs(userDocumentsQ);
     if (documentes.docs.length > 0) {
       let results = [];
@@ -111,115 +132,132 @@ export default function Students() {
         // doc.data() is never undefined for query doc snapshots
         results.push({ document_id: doc.id, user_id: user.uid, ...doc.data() });
       });
-      console.log(results);
+
       setRecords(results);
     }
+    const storage = getStorage();
+    getDownloadURL(ref(storage, "documents/7WHeFag9hsNRNSk1lwSSBAzeUlv2/2.png"))
+      .then((url) => {
+        // `url` is the download URL for 'images/stars.jpg'
+
+        // This can be downloaded directly:
+        const xhr = new XMLHttpRequest();
+        xhr.responseType = "blob";
+        xhr.onload = (event) => {
+          const blob = xhr.response;
+
+          console.log({ blob });
+        };
+        xhr.open("GET", url);
+        xhr.send();
+      })
+      .catch((error) => {
+        console.log({ error });
+      });
+  }, []);
+
+  const upload = useCallback((downloadURLPaths, user, files) => {
+    return new Promise((resolve, reject) => {
+      const sotrageRef = ref(
+        storage,
+        `documents/${user.uid}/${files.file[0].name}`
+      );
+      const uploadTask = uploadBytesResumable(sotrageRef, files.file[0]);
+
+      uploadTask.on(
+        "state_changed",
+        (snapshot) => {
+          const prog = Math.round(
+            (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+          );
+          setProgress(() => ({
+            type: files.key,
+            precented: prog,
+          }));
+        },
+        (error) => {
+          console.log(error);
+          reject(false);
+        },
+        () => {
+          getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+            resolve({ name: files.key, path: downloadURL });
+            // downloadURLPaths.push({ name: files.key, path: downloadURL });
+            console.log("File available at", downloadURL);
+          });
+        }
+      );
+    });
   }, []);
 
   const addOrEdit = useCallback(
     async (student, resetForm) => {
       const user = JSON.parse(localStorage.getItem("user"));
-      console.log(student);
-
+      console.log("xxx", student);
+      const files = [
+        student.anexa2 ? { key: "anexa2", file: student.anexa2 } : undefined,
+        student.anexa4 ? { key: "anexa4", file: student.anexa4 } : undefined,
+        student.anexa6 ? { key: "anexa6", file: student.anexa6 } : undefined,
+        student.anexa7 ? { key: "anexa7", file: student.anexa7 } : undefined,
+        student.anexa8 ? { key: "anexa8", file: student.anexa8 } : undefined,
+      ];
+      let downloadURLPaths = [];
       if (!user) {
         alert("No user found.");
       }
-      if (!student.document_id) {
-        const storage = getStorage();
-
-        const storageRef = firebaseApp.storage().ref();
-        const fileRef = storageRef.child(student.file[0].name);
-        await fileRef.put(student.file[0]);
-        const fileUrl = await fileRef.getDownloadURL();
-        console.log(fileUrl);
-
-        // Create the file metadata
-        /** @type {any} */
-        // const metadata = {
-        //   contentType: "image/jpeg",
-        // };
-        // // Upload file and metadata to the object 'images/mountains.jpg'
-        // const storageRef = ref(storage, "documents/" + student.file[0].name);
-        // const uploadTask = uploadBytesResumable(
-        //   storageRef,
-        //   student.file[0],
-        //   metadata
-        // );
-        // // Listen for state changes, errors, and completion of the upload.
-        // uploadTask.on(
-        //   "state_changed",
-        //   (snapshot) => {
-        //     // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
-        //     const progress =
-        //       (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-        //     console.log("Upload is " + progress + "% done");
-        //     switch (snapshot.state) {
-        //       case "paused":
-        //         console.log("Upload is paused");
-        //         break;
-        //       case "running":
-        //         console.log("Upload is running");
-        //         break;
-        //     }
-        //   },
-        //   (error) => {
-        //     // A full list of error codes is available at
-        //     // https://firebase.google.com/docs/storage/web/handle-errors
-        //     switch (error.code) {
-        //       case "storage/unauthorized":
-        //         // User doesn't have permission to access the object
-        //         break;
-        //       case "storage/canceled":
-        //         // User canceled the upload
-        //         break;
-        //       // ...
-        //       case "storage/unknown":
-        //         // Unknown error occurred, inspect error.serverResponse
-        //         break;
-        //     }
-        //   },
-        //   () => {
-        //     // Upload completed successfully, now we can get the download URL
-        //     getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-        //       console.log("File available at", downloadURL);
-        //     });
-        //   }
-        // );
-
-        // * Create
-        await addDoc(collection(db, "documents"), {
-          city: student.city,
-          degree_id: student.degree_id,
-          email: student.email,
-          exam_date: student.exam_date.toLocaleDateString("en-GB"),
-          frequency: student.frequency,
-          full_name: student.full_name,
-          gender: student.gender,
-          mobile: student.mobile,
-          study_program: student.study_program,
-          user_id: user.uid,
-          year_of_study: student.year_of_study,
+      let promisees = [];
+      files.map((file) => promisees.push(upload(downloadURLPaths, user, file)));
+      Promise.all(promisees)
+        .then(async (resp) => {
+          console.log({ resp });
+          setProgress(() => ({
+            type: "",
+            precented: 0,
+          }));
+          const parseStorageDocs = resp.reduce((prev, cur) => {
+            return { [prev.name]: prev.path, [cur.name]: cur.path };
+          });
+          if (!student.document_id) {
+            // * Create
+            await addDoc(collection(db, "documents"), {
+              city: student.city,
+              degree_id: student.degree_id,
+              email: student.email,
+              exam_date: student.exam_date.toLocaleDateString("en-GB"),
+              frequency: student.frequency,
+              full_name: student.full_name,
+              gender: student.gender,
+              mobile: student.mobile,
+              study_program: student.study_program,
+              user_id: user.uid,
+              year_of_study: student.year_of_study,
+              ...parseStorageDocs,
+            });
+            alert("Documents saved");
+          } else {
+            const updateDocRef = doc(db, "documents", student.document_id);
+            await updateDoc(updateDocRef, {
+              city: student.city,
+              degree_id: student.degree_id,
+              email: student.email,
+              exam_date:
+                typeof student.exam_date === "object"
+                  ? student.exam_date.toLocaleDateString("en-GB")
+                  : student.exam_date,
+              frequency: student.frequency,
+              full_name: student.full_name,
+              gender: student.gender,
+              mobile: student.mobile,
+              study_program: student.study_program,
+              user_id: user.uid,
+              year_of_study: student.year_of_study,
+            });
+          }
+        })
+        .catch((error) => {
+          console.log({ error });
         });
-      } else {
-        console.log("jere");
-        const updateDocRef = doc(db, "documents", student.document_id);
-        await updateDoc(updateDocRef, {
-          city: student.city,
-          degree_id: student.degree_id,
-          email: student.email,
-          exam_date:
-            typeof student.exam_date === "object"
-              ? student.exam_date.toLocaleDateString("en-GB")
-              : student.exam_date,
-          frequency: student.frequency,
-          full_name: student.full_name,
-          gender: student.gender,
-          mobile: student.mobile,
-          study_program: student.study_program,
-          user_id: user.uid,
-          year_of_study: student.year_of_study,
-        });
-      }
+
       getFireStoreDocuments(user);
 
       // if (student.id == 0) studentService.insertStudent(student);
@@ -229,7 +267,7 @@ export default function Students() {
       //   setOpenPopup(false);
       // setRecords(studentService.getAllStudents());
     },
-    [getFireStoreDocuments]
+    [getFireStoreDocuments, upload]
   );
 
   const openInPopup = (item) => {
@@ -237,10 +275,24 @@ export default function Students() {
     setOpenPopup(true);
   };
 
+  const deleteDocument = useCallback(
+    async (item) => {
+      console.log({ item });
+      await deleteDoc(doc(db, "documents", item.document_id));
+      const user = JSON.parse(localStorage.getItem("user"));
+      getFireStoreDocuments(user);
+    },
+    [getFireStoreDocuments]
+  );
+
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user"));
-    getFireStoreDocuments(user);
-  }, [getFireStoreDocuments]);
+    if (!user) {
+      history.push("/login");
+    } else {
+      getFireStoreDocuments(user);
+    }
+  }, [getFireStoreDocuments, history]);
 
   return (
     <>
@@ -294,11 +346,71 @@ export default function Students() {
                   <TableCell>{item.exam_date}</TableCell>
                   <TableCell>{item.study_program}</TableCell>
                   <TableCell>{item.year_of_study}</TableCell>
-                  <TableCell>{item.anexa2}</TableCell>
-                  <TableCell>{item.anexa4}</TableCell>
-                  <TableCell>{item.anexa6}</TableCell>
-                  <TableCell>{item.anexa7}</TableCell>
-                  <TableCell>{item.anexa8}</TableCell>
+                  <TableCell>
+                    {item.anexa2 && (
+                      <a
+                        href={item.anexa2}
+                        style={{ color: "#000" }}
+                        download
+                        rel="noopener noreferrer"
+                        target="_blank"
+                      >
+                        Download
+                      </a>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {item.anexa4 && (
+                      <a
+                        href={item.anexa4}
+                        style={{ color: "#000" }}
+                        download
+                        rel="noopener noreferrer"
+                        target="_blank"
+                      >
+                        Download
+                      </a>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {item.anexa6 && (
+                      <a
+                        href={item.anexa6}
+                        style={{ color: "#000" }}
+                        download
+                        rel="noopener noreferrer"
+                        target="_blank"
+                      >
+                        Download
+                      </a>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {item.anexa7 && (
+                      <a
+                        href={item.anexa7}
+                        style={{ color: "#000" }}
+                        download
+                        rel="noopener noreferrer"
+                        target="_blank"
+                      >
+                        Download
+                      </a>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {item.anexa8 && (
+                      <a
+                        href={item.anexa8}
+                        style={{ color: "#000" }}
+                        download
+                        rel="noopener noreferrer"
+                        target="_blank"
+                      >
+                        Download
+                      </a>
+                    )}
+                  </TableCell>
                   <TableCell>
                     <Controls.ActionButton
                       color="primary"
@@ -308,7 +420,10 @@ export default function Students() {
                     >
                       <EditOutlinedIcon fontSize="small" />
                     </Controls.ActionButton>
-                    <Controls.ActionButton color="secondary">
+                    <Controls.ActionButton
+                      color="secondary"
+                      onClick={() => deleteDocument(item)}
+                    >
                       <CloseIcon fontSize="small" />
                     </Controls.ActionButton>
                   </TableCell>
@@ -324,7 +439,11 @@ export default function Students() {
         openPopup={openPopup}
         setOpenPopup={setOpenPopup}
       >
-        <StudentForm recordForEdit={recordForEdit} addOrEdit={addOrEdit} />
+        <StudentForm
+          recordForEdit={recordForEdit}
+          addOrEdit={addOrEdit}
+          progress={progress}
+        />
       </Popup>
     </>
   );

@@ -4,11 +4,14 @@ import "./index.css";
 import App from "./App/App";
 // import { ConnectedRouter } from "connected-react-router";
 // import { ReactReduxContext } from "react-redux";
+// import { createBrowserHistory } from "history";
 
 import * as serviceWorker from "./serviceWorker";
+// ** Create Browser History.
+// const history = createBrowserHistory();
 
 ReactDOM.render(
-  //   <ConnectedRouter history={history} context={ReactReduxContext}>
+  //   <ConnectedRouter history={history}>
   <App />,
   //   </ConnectedRouter>,
   document.getElementById("root")

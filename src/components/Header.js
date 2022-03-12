@@ -5,11 +5,11 @@ import {
   Grid,
   InputBase,
   IconButton,
-  Badge,
+  //   Badge,
   makeStyles,
 } from "@material-ui/core";
-import NotificationsNoneIcon from "@material-ui/icons/NotificationsNone";
-import ChatBubbleOutlineIcon from "@material-ui/icons/ChatBubbleOutline";
+// import NotificationsNoneIcon from "@material-ui/icons/NotificationsNone";
+// import ChatBubbleOutlineIcon from "@material-ui/icons/ChatBubbleOutline";
 import PowerSettingsNewIcon from "@material-ui/icons/PowerSettingsNew";
 import SearchIcon from "@material-ui/icons/Search";
 import { useHistory } from "react-router-dom";
@@ -62,7 +62,7 @@ export default function Header() {
           </Grid>
           <Grid item sm></Grid>
           <Grid item>
-            <IconButton>
+            {/* <IconButton>
               <Badge badgeContent={4} color="secondary">
                 <NotificationsNoneIcon fontSize="small" />
               </Badge>
@@ -71,7 +71,7 @@ export default function Header() {
               <Badge badgeContent={3} color="primary">
                 <ChatBubbleOutlineIcon fontSize="small" />
               </Badge>
-            </IconButton>
+            </IconButton> */}
             <IconButton onClick={logout}>
               <PowerSettingsNewIcon fontSize="small" />
             </IconButton>
