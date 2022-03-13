@@ -174,3 +174,8 @@ p {
 .text--center {
   text-align: center;
 }
+
+.googleRechapchaV2 {
+  display: flex;
+  justify-content: center;
+}

@@ -1,3 +1,4 @@
+/* eslint-disable eqeqeq */
 const KEYS = {
   students: "students",
   studentId: "studentId",

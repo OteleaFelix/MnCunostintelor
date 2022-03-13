@@ -22,12 +22,7 @@ import {
   updateDoc,
   deleteDoc,
 } from "firebase/firestore";
-import {
-  getStorage,
-  ref,
-  uploadBytesResumable,
-  getDownloadURL,
-} from "firebase/storage";
+import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 
 import useTable from "../../components/useTable";
 // import * as studentService from "../../services/studentService";
@@ -72,6 +67,7 @@ const headCells = [
   { id: "anexa6", label: "Anexa 6" },
   { id: "anexa7", label: "Anexa 7" },
   { id: "anexa8", label: "Anexa 8" },
+  { id: "signiture", label: "Signiture" },
   { id: "actions", label: "Actions", disableSorting: true },
 ];
 
@@ -135,25 +131,6 @@ export default function Students() {
 
       setRecords(results);
     }
-    const storage = getStorage();
-    getDownloadURL(ref(storage, "documents/7WHeFag9hsNRNSk1lwSSBAzeUlv2/2.png"))
-      .then((url) => {
-        // `url` is the download URL for 'images/stars.jpg'
-
-        // This can be downloaded directly:
-        const xhr = new XMLHttpRequest();
-        xhr.responseType = "blob";
-        xhr.onload = (event) => {
-          const blob = xhr.response;
-
-          console.log({ blob });
-        };
-        xhr.open("GET", url);
-        xhr.send();
-      })
-      .catch((error) => {
-        console.log({ error });
-      });
   }, []);
 
   const upload = useCallback((downloadURLPaths, user, files) => {
@@ -191,22 +168,33 @@ export default function Students() {
   }, []);
 
   const addOrEdit = useCallback(
-    async (student, resetForm) => {
+    async (student, resetForm, signiture) => {
       const user = JSON.parse(localStorage.getItem("user"));
-      console.log("xxx", student);
-      const files = [
-        student.anexa2 ? { key: "anexa2", file: student.anexa2 } : undefined,
-        student.anexa4 ? { key: "anexa4", file: student.anexa4 } : undefined,
-        student.anexa6 ? { key: "anexa6", file: student.anexa6 } : undefined,
-        student.anexa7 ? { key: "anexa7", file: student.anexa7 } : undefined,
-        student.anexa8 ? { key: "anexa8", file: student.anexa8 } : undefined,
-      ];
+      console.log("xxx", student, signiture);
+      let files = [];
+
+      typeof student.anexa2 === "object" &&
+        files.push({ key: "anexa2", file: student.anexa2 });
+      typeof student.anexa4 === "object" &&
+        files.push({ key: "anexa4", file: student.anexa4 });
+      typeof student.anexa6 === "object" &&
+        files.push({ key: "anexa6", file: student.anexa6 });
+      typeof student.anexa7 === "object" &&
+        files.push({ key: "anexa7", file: student.anexa7 });
+      typeof student.anexa8 === "object" &&
+        files.push({ key: "anexa8", file: student.anexa8 });
+
+      console.log({ files });
       let downloadURLPaths = [];
       if (!user) {
         alert("No user found.");
       }
       let promisees = [];
-      files.map((file) => promisees.push(upload(downloadURLPaths, user, file)));
+      if (files.length > 0) {
+        files.map((file) =>
+          promisees.push(upload(downloadURLPaths, user, file))
+        );
+      }
       Promise.all(promisees)
         .then(async (resp) => {
           console.log({ resp });
@@ -214,9 +202,12 @@ export default function Students() {
             type: "",
             precented: 0,
           }));
-          const parseStorageDocs = resp.reduce((prev, cur) => {
-            return { [prev.name]: prev.path, [cur.name]: cur.path };
-          });
+          let parseStorageDocs;
+          if (resp.length > 0) {
+            parseStorageDocs = resp.reduce((prev, cur) => {
+              return { [prev.name]: prev.path, [cur.name]: cur.path };
+            });
+          }
           if (!student.document_id) {
             // * Create
             await addDoc(collection(db, "documents"), {
@@ -231,11 +222,37 @@ export default function Students() {
               study_program: student.study_program,
               user_id: user.uid,
               year_of_study: student.year_of_study,
-              ...parseStorageDocs,
+              ...(signiture && { signiture: signiture }),
+              ...(parseStorageDocs ? parseStorageDocs : undefined),
             });
-            alert("Documents saved");
+            alert("Documents saved.");
+            getFireStoreDocuments(user);
+            setOpenPopup(false);
           } else {
             const updateDocRef = doc(db, "documents", student.document_id);
+            // console.log({
+            //   city: student.city,
+            //   degree_id: student.degree_id,
+            //   email: student.email,
+            //   exam_date:
+            //     typeof student.exam_date === "object"
+            //       ? student.exam_date.toLocaleDateString("en-GB")
+            //       : student.exam_date,
+            //   frequency: student.frequency,
+            //   full_name: student.full_name,
+            //   gender: student.gender,
+            //   mobile: student.mobile,
+            //   study_program: student.study_program,
+            //   user_id: user.uid,
+            //   year_of_study: student.year_of_study,
+            //   ...(student.anexa2 ? { anexa2: student.anexa2 } : undefined),
+            //   ...(student.anexa4 ? { anexa4: student.anexa4 } : undefined),
+            //   ...(student.anexa6 ? { anexa6: student.anexa6 } : undefined),
+            //   ...(student.anexa7 ? { anexa7: student.anexa7 } : undefined),
+            //   ...(student.anexa8 ? { anexa8: student.anexa8 } : undefined),
+            //   ...(signiture && { signiture: signiture }),
+            //   ...(parseStorageDocs ? parseStorageDocs : undefined),
+            // });
             await updateDoc(updateDocRef, {
               city: student.city,
               degree_id: student.degree_id,
@@ -251,14 +268,22 @@ export default function Students() {
               study_program: student.study_program,
               user_id: user.uid,
               year_of_study: student.year_of_study,
+              ...(student.anexa2 ? { anexa2: student.anexa2 } : undefined),
+              ...(student.anexa4 ? { anexa4: student.anexa4 } : undefined),
+              ...(student.anexa6 ? { anexa6: student.anexa6 } : undefined),
+              ...(student.anexa7 ? { anexa7: student.anexa7 } : undefined),
+              ...(student.anexa8 ? { anexa8: student.anexa8 } : undefined),
+              ...(signiture && { signiture: signiture }),
+              ...(parseStorageDocs ? parseStorageDocs : undefined),
             });
+            alert("Documents updated.");
+            getFireStoreDocuments(user);
+            setOpenPopup(false);
           }
         })
         .catch((error) => {
           console.log({ error });
         });
-
-      getFireStoreDocuments(user);
 
       // if (student.id == 0) studentService.insertStudent(student);
       // else studentService.updateStudent(student);
@@ -269,6 +294,28 @@ export default function Students() {
     },
     [getFireStoreDocuments, upload]
   );
+
+  // ** Download file in browser.
+  //   const getImageFile = useCallback((path) => {
+  //     const storage = getStorage();
+  //     getDownloadURL(ref(storage, path))
+  //       .then((url) => {
+  //         // This can be downloaded directly:
+  //         const xhr = new XMLHttpRequest();
+  //         xhr.responseType = "blob";
+  //         xhr.onload = (event) => {
+  //           const blob = xhr.response;
+
+  //           setRecordForEdit((prev) => ({ ...prev, anexa2: blob }));
+  //           console.log({ blob });
+  //         };
+  //         xhr.open("GET", url);
+  //         xhr.send();
+  //       })
+  //       .catch((error) => {
+  //         console.log({ error });
+  //       });
+  //   }, []);
 
   const openInPopup = (item) => {
     setRecordForEdit(item);
@@ -336,9 +383,9 @@ export default function Students() {
                   <TableCell>{item.city}</TableCell>
                   <TableCell>{item.mobile}</TableCell>
                   <TableCell>
-                    {item.degree_id === 1
+                    {item.degree_id == 1
                       ? `Bachelor's degree (licență)`
-                      : item.degree_id === 2
+                      : item.degree_id == 2
                       ? "Master degree (disertație)"
                       : "None"}
                   </TableCell>
@@ -402,6 +449,19 @@ export default function Students() {
                     {item.anexa8 && (
                       <a
                         href={item.anexa8}
+                        style={{ color: "#000" }}
+                        download
+                        rel="noopener noreferrer"
+                        target="_blank"
+                      >
+                        Download
+                      </a>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {item.signiture && (
+                      <a
+                        href={item.signiture}
                         style={{ color: "#000" }}
                         download
                         rel="noopener noreferrer"

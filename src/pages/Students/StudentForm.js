@@ -1,13 +1,17 @@
-import React, { useState, useEffect } from "react";
+/* eslint-disable eqeqeq */
+import React, { useRef, useEffect } from "react";
 import { Grid } from "@material-ui/core";
-import { Fab } from "@material-ui/core";
-import { Button } from "@material-ui/core";
-import AddIcon from "@material-ui/icons/Add";
-import PageHeader from "../../components/PageHeader";
-import { Input, InputLabel } from "@material-ui/core";
+// import { Fab } from "@material-ui/core";
+// import { Button } from "@material-ui/core";
+// import AddIcon from "@material-ui/icons/Add";
+// import PageHeader from "../../components/PageHeader";
+// import { Input, InputLabel } from "@material-ui/core";
 import Controls from "../../components/controls/Controls";
-import { Typography } from "@material-ui/core";
-import UploadFiles from "../../components/upload-files.component";
+// import { Typography } from "@material-ui/core";
+// import UploadFiles from "../../components/upload-files.component";
+// import { ref, getStorage, getDownloadURL } from "firebase/storage";
+import SignatureCanvas from "react-signature-canvas";
+
 import { useForm, Form } from "../../components/useForm";
 import * as studentService from "../../services/studentService";
 import { TextField } from "@material-ui/core";
@@ -42,20 +46,12 @@ const initialFValues = {
   anexa6: undefined,
   anexa7: undefined,
   anexa8: undefined,
+  signuture: undefined,
 };
 
 export default function StudentForm(props) {
   const { addOrEdit, recordForEdit } = props;
-
-  //   const formHandler = (e) => {
-  //     e.preventDefault();
-  //     const file = e.target[0].files[0];
-  //     uploadFiles(file);
-  //   };
-
-  //   const uploadFiles = (file) => {
-
-  //   };
+  const ref = useRef();
 
   const validate = (fieldValues = values) => {
     let temp = { ...errors };
@@ -95,19 +91,20 @@ export default function StudentForm(props) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    let signiture = ref.current.getTrimmedCanvas().toDataURL("image/png");
+
     if (validate()) {
-      addOrEdit(values, resetForm);
+      console.log({ values });
+      addOrEdit(values, resetForm, !ref.current.isEmpty() && signiture);
     }
   };
-
-  console.log({ values });
 
   useEffect(() => {
     if (recordForEdit != null)
       setValues({
         ...recordForEdit,
       });
-  }, [recordForEdit]);
+  }, [recordForEdit, setValues]);
 
   return (
     <Form onSubmit={handleSubmit}>
@@ -155,8 +152,6 @@ export default function StudentForm(props) {
             value={values.city}
             onChange={handleInputChange}
           />
-        </Grid>
-        <Grid item xs={6}>
           <Controls.RadioGroup
             name="gender"
             label="Gender"
@@ -186,10 +181,18 @@ export default function StudentForm(props) {
             onChange={handleInputChange}
             items={studyTypes}
           />
+        </Grid>
+        <Grid item xs={6}>
           {/* <Controls.Checkbox
-            name="isInvatamantDistanta"
-            label="ID:"
-            value={values.isInvatamantDistantaE}
+            name="termsAndConditions"
+            label="Confirmare corectitudine datelor"
+            value={values.termsAndConditions}
+            onChange={handleInputChange}
+          />
+          <Controls.Checkbox
+            name="termsAndConditions"
+            label="Accept obligatiunile si drepturile conferite prin aceast act"
+            value={values.termsAndConditions}
             onChange={handleInputChange}
           /> */}
           <div>
@@ -200,14 +203,27 @@ export default function StudentForm(props) {
               )}
             </label>
             <br />
-            <TextField
-              type="file"
-              variant="outlined"
-              name="anexa2"
-              onChange={handleInputChange}
-              error={errors.anexa2}
-              helperText={errors.anexa2}
-            />
+            <div style={{ display: "flex", alignItems: "center" }}>
+              <TextField
+                type="file"
+                variant="outlined"
+                name="anexa2"
+                onChange={handleInputChange}
+                error={errors.anexa2}
+                helperText={errors.anexa2}
+              />
+              {values.anexa2 && (
+                <a
+                  href={values.anexa2}
+                  style={{ color: "#000" }}
+                  download
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  Download
+                </a>
+              )}
+            </div>
           </div>
           <div>
             <div>
@@ -218,14 +234,27 @@ export default function StudentForm(props) {
                 )}
               </label>
               <br />
-              <TextField
-                type="file"
-                variant="outlined"
-                name="anexa4"
-                onChange={handleInputChange}
-                error={errors.anexa4}
-                helperText={errors.anexa4}
-              />
+              <div style={{ display: "flex", alignItems: "center" }}>
+                <TextField
+                  type="file"
+                  variant="outlined"
+                  name="anexa4"
+                  onChange={handleInputChange}
+                  error={errors.anexa4}
+                  helperText={errors.anexa4}
+                />
+                {values.anexa4 && (
+                  <a
+                    href={values.anexa4}
+                    style={{ color: "#000" }}
+                    download
+                    rel="noopener noreferrer"
+                    target="_blank"
+                  >
+                    Preview
+                  </a>
+                )}
+              </div>
             </div>
             <div>
               <div>
@@ -236,14 +265,27 @@ export default function StudentForm(props) {
                   )}
                 </label>
                 <br />
-                <TextField
-                  type="file"
-                  variant="outlined"
-                  name="anexa6"
-                  onChange={handleInputChange}
-                  error={errors.anexa6}
-                  helperText={errors.anexa6}
-                />
+                <div>
+                  <TextField
+                    type="file"
+                    variant="outlined"
+                    name="anexa6"
+                    onChange={handleInputChange}
+                    error={errors.anexa6}
+                    helperText={errors.anexa6}
+                  />
+                  {values.anexa6 && (
+                    <a
+                      href={values.anexa6}
+                      style={{ color: "#000" }}
+                      download
+                      rel="noopener noreferrer"
+                      target="_blank"
+                    >
+                      Preview
+                    </a>
+                  )}
+                </div>
               </div>
               <div>
                 <div>
@@ -254,14 +296,27 @@ export default function StudentForm(props) {
                     )}
                   </label>
                   <br />
-                  <TextField
-                    type="file"
-                    variant="outlined"
-                    name="anexa7"
-                    onChange={handleInputChange}
-                    error={errors.anexa7}
-                    helperText={errors.anexa7}
-                  />
+                  <div>
+                    <TextField
+                      type="file"
+                      variant="outlined"
+                      name="anexa7"
+                      onChange={handleInputChange}
+                      error={errors.anexa7}
+                      helperText={errors.anexa7}
+                    />
+                    {values.anexa7 && (
+                      <a
+                        href={values.anexa7}
+                        style={{ color: "#000" }}
+                        download
+                        rel="noopener noreferrer"
+                        target="_blank"
+                      >
+                        Preview
+                      </a>
+                    )}
+                  </div>
                 </div>
               </div>
               <div>
@@ -273,15 +328,59 @@ export default function StudentForm(props) {
                     )}
                   </label>
                   <br />
-                  <TextField
-                    type="file"
-                    variant="outlined"
-                    name="anexa8"
-                    onChange={handleInputChange}
-                    error={errors.anexa8}
-                    helperText={errors.anexa8}
+                  <div>
+                    <TextField
+                      type="file"
+                      variant="outlined"
+                      name="anexa8"
+                      onChange={handleInputChange}
+                      error={errors.anexa8}
+                      helperText={errors.anexa8}
+                    />
+                    {values.anexa8 && (
+                      <a
+                        href={values.anexa8}
+                        style={{ color: "#000" }}
+                        download
+                        rel="noopener noreferrer"
+                        target="_blank"
+                      >
+                        Preview
+                      </a>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <label style={{ marginLeft: 10 }}>Signature</label>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  marginLeft: 10,
+                }}
+              >
+                <div style={{ border: "1px solid #c4c4c4" }}>
+                  <SignatureCanvas
+                    penColor="#000"
+                    ref={ref}
+                    canvasProps={{
+                      width: 345,
+                      height: 200,
+                      className: "sigCanvas",
+                    }}
                   />
                 </div>
+                {values.signiture && (
+                  <a
+                    href={values.signiture}
+                    style={{ color: "#000" }}
+                    download
+                    rel="noopener noreferrer"
+                    target="_blank"
+                  >
+                    Preview
+                  </a>
+                )}
               </div>
             </div>
             <div style={{ marginTop: 15 }}>

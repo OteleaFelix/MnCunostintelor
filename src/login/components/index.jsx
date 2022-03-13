@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from "react";
-
+import ReCAPTCHA from "react-google-recaptcha";
 import { useHistory } from "react-router-dom";
 import {
   GoogleAuthProvider,
@@ -23,58 +23,79 @@ export const SignUp = () => {
   });
   const auth = getAuth(firebaseApp);
   const history = useHistory();
+  const [recaptcha, setRecaptcha] = useState(false);
 
   const googleOAuth = useCallback(async () => {
-    const googleProvider = new GoogleAuthProvider();
-    try {
-      const res = await signInWithPopup(auth, googleProvider);
-      const user = res.user;
-      const q = query(collection(db, "users"), where("uid", "==", user.uid));
-      const docs = await getDocs(q);
-      if (docs.docs.length === 0) {
-        await addDoc(collection(db, "users"), {
-          uid: user.uid,
-          name: user.displayName,
-          authProvider: "google",
-          email: user.email,
-          role: "student",
-        });
+    if (recaptcha) {
+      const googleProvider = new GoogleAuthProvider();
+      try {
+        const res = await signInWithPopup(auth, googleProvider);
+        const user = res.user;
+        const q = query(collection(db, "users"), where("uid", "==", user.uid));
+        const docs = await getDocs(q);
+        if (docs.docs.length === 0) {
+          await addDoc(collection(db, "users"), {
+            uid: user.uid,
+            name: user.displayName,
+            authProvider: "google",
+            email: user.email,
+            role: "student",
+          });
+        }
+        history.push("/");
+      } catch (err) {
+        console.error(err);
+        alert(err.message);
       }
-      history.push("/");
-    } catch (err) {
-      console.error(err);
-      alert(err.message);
+    } else {
+      alert("Please confirm you are not a robot.");
     }
-  }, [auth, history]);
+  }, [auth, history, recaptcha]);
 
   const register = useCallback(async () => {
-    try {
-      console.log(email, password);
-      if (password !== confirmPassword) {
-        setConfirmPassword((prev) => ({
-          ...prev,
-          error: "Passwords do not match.",
-        }));
-      } else {
-        const res = await createUserWithEmailAndPassword(auth, email, password);
-        const user = res.user;
-        setConfirmPassword((prev) => ({
-          ...prev,
-          error: "",
-        }));
-        await addDoc(collection(db, "users"), {
-          uid: user.uid,
-          authProvider: "local",
-          email: email,
-          role: "student",
-        });
-        history.push("/");
+    if (recaptcha) {
+      try {
+        console.log(email, password);
+        if (password !== confirmPassword) {
+          setConfirmPassword((prev) => ({
+            ...prev,
+            error: "Passwords do not match.",
+          }));
+        } else {
+          const res = await createUserWithEmailAndPassword(
+            auth,
+            email,
+            password
+          );
+          const user = res.user;
+          setConfirmPassword((prev) => ({
+            ...prev,
+            error: "",
+          }));
+          await addDoc(collection(db, "users"), {
+            uid: user.uid,
+            authProvider: "local",
+            email: email,
+            role: "student",
+          });
+          history.push("/");
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Something went wrong, please retry later.");
       }
-    } catch (err) {
-      console.error(err);
-      alert("Something went wrong, please retry later.");
+    } else {
+      alert("Please confirm you are not a robot.");
     }
-  }, [password, confirmPassword, auth, email, history]);
+  }, [recaptcha, email, password, confirmPassword, auth, history]);
+
+  const onRecaptchaChange = (value) => {
+    if (value) {
+      setRecaptcha(true);
+    } else {
+      setRecaptcha(false);
+    }
+  };
 
   return (
     <div class="iphones">
@@ -153,6 +174,14 @@ export const SignUp = () => {
               {confirmPassword.error && (
                 <span style={{ color: "red" }}>{confirmPassword.error}</span>
               )}
+            </div>
+            <div className="googleRechapchaV2">
+              <ReCAPTCHA
+                sitekey="6LetRNkeAAAAAA4d-oDTLNqIf9waaD-4fI9dUpAg"
+                onChange={onRecaptchaChange}
+                theme={"dark"}
+                size={"compact"}
+              />
             </div>
           </div>
 
