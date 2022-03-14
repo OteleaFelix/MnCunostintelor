@@ -54,7 +54,7 @@ const useStyles = makeStyles((theme) => ({
 
 const headCells = [
   { id: "full_name", label: "Student Name" },
-  { id: "email", label: "Email Address (Personal)" },
+  { id: "email", label: "Email Address (Constitutional)" },
   { id: "city", label: "City" },
   { id: "mobile", label: "Mobile Number" },
   { id: "degree", label: "Degree Type" },
@@ -230,29 +230,7 @@ export default function Students() {
             setOpenPopup(false);
           } else {
             const updateDocRef = doc(db, "documents", student.document_id);
-            // console.log({
-            //   city: student.city,
-            //   degree_id: student.degree_id,
-            //   email: student.email,
-            //   exam_date:
-            //     typeof student.exam_date === "object"
-            //       ? student.exam_date.toLocaleDateString("en-GB")
-            //       : student.exam_date,
-            //   frequency: student.frequency,
-            //   full_name: student.full_name,
-            //   gender: student.gender,
-            //   mobile: student.mobile,
-            //   study_program: student.study_program,
-            //   user_id: user.uid,
-            //   year_of_study: student.year_of_study,
-            //   ...(student.anexa2 ? { anexa2: student.anexa2 } : undefined),
-            //   ...(student.anexa4 ? { anexa4: student.anexa4 } : undefined),
-            //   ...(student.anexa6 ? { anexa6: student.anexa6 } : undefined),
-            //   ...(student.anexa7 ? { anexa7: student.anexa7 } : undefined),
-            //   ...(student.anexa8 ? { anexa8: student.anexa8 } : undefined),
-            //   ...(signiture && { signiture: signiture }),
-            //   ...(parseStorageDocs ? parseStorageDocs : undefined),
-            // });
+    
             await updateDoc(updateDocRef, {
               city: student.city,
               degree_id: student.degree_id,
@@ -284,13 +262,6 @@ export default function Students() {
         .catch((error) => {
           console.log({ error });
         });
-
-      // if (student.id == 0) studentService.insertStudent(student);
-      // else studentService.updateStudent(student);
-      //   resetForm();
-      //   setRecordForEdit(null);
-      //   setOpenPopup(false);
-      // setRecords(studentService.getAllStudents());
     },
     [getFireStoreDocuments, upload]
   );
@@ -495,7 +466,7 @@ export default function Students() {
         <TblPagination />
       </Paper>
       <Popup
-        title="Student Form"
+        title="Înscriere"
         openPopup={openPopup}
         setOpenPopup={setOpenPopup}
       >
