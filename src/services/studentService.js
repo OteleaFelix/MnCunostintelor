@@ -5,8 +5,9 @@ const KEYS = {
 };
 
 export const getDegreeCollection = () => [
-  { id: "1", title: "Bachelor's degree (licență)" },
-  { id: "2", title: "Master degree (disertație)" },
+  { id: "1", title: "LUCRAREA DE LICENȚĂ" },
+  { id: "2", title: "PROIECTUL DE DIPLOMĂ" },
+  { id: "3", title:  "DISERTAȚIA"}
 ];
 
 export function insertStudent(data) {
