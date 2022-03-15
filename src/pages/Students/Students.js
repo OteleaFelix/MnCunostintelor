@@ -62,12 +62,16 @@ const headCells = [
   { id: "exam_date", label: "Exam Date" },
   { id: "study_program", label: "Study Program" },
   { id: "year_of_study", label: "Year Of Study" },
+  { id: "group", label: "Group" },
+  { id: "faculty", label: "Facultate" },
+  { id: "profesor", label: "Conducator Stiintific" },
   { id: "anexa2", label: "Anexa 2" },
   { id: "anexa4", label: "Anexa 4" },
   { id: "anexa6", label: "Anexa 6" },
   { id: "anexa7", label: "Anexa 7" },
   { id: "anexa8", label: "Anexa 8" },
   { id: "signiture", label: "Signiture" },
+  { id: "profesorSignuture", label: "Profesor Signiture" },
   { id: "actions", label: "Actions", disableSorting: true },
 ];
 
@@ -168,9 +172,9 @@ export default function Students() {
   }, []);
 
   const addOrEdit = useCallback(
-    async (student, resetForm, signiture) => {
+    async (student, resetForm, signiture, profesorSignuture) => {
       const user = JSON.parse(localStorage.getItem("user"));
-      console.log("xxx", student, signiture);
+
       let files = [];
 
       typeof student.anexa2 === "object" &&
@@ -203,18 +207,41 @@ export default function Students() {
             precented: 0,
           }));
           let parseStorageDocs;
+          let a = {};
+          let b = {};
+          let c = {};
+          let d = {};
+          let e = {};
           if (resp.length > 0) {
             parseStorageDocs = resp.reduce((prev, cur) => {
-              return { [prev.name]: prev.path, [cur.name]: cur.path };
-            });
+              if (cur.name === "anexa2") {
+                Object.assign(a, { anexa2: cur.path });
+              }
+              if (cur.name === "anexa4") {
+                Object.assign(b, { anexa4: cur.path });
+              }
+              if (cur.name === "anexa6") {
+                Object.assign(c, { anexa6: cur.path });
+              }
+              if (cur.name === "anexa7") {
+                Object.assign(d, { anexa7: cur.path });
+              }
+              if (cur.name === "anexa8") {
+                Object.assign(e, { anexa8: cur.path });
+              }
+              console.log("zzzz", { a, b, c, d, e });
+              return { ...a, ...b, ...c, ...d, ...e };
+              //   return { [cur.name]: cur.path };
+            }, {});
           }
+          console.log({ parseStorageDocs }, { ...a, ...b, ...c, ...d, ...e });
           if (!student.document_id) {
             // * Create
             await addDoc(collection(db, "documents"), {
               city: student.city,
               degree_id: student.degree_id,
               email: student.email,
-              exam_date: student.exam_date.toLocaleDateString("en-GB"),
+              exam_date: student.exam_date.toLocaleDateString("en-US"),
               frequency: student.frequency,
               full_name: student.full_name,
               gender: student.gender,
@@ -222,7 +249,13 @@ export default function Students() {
               study_program: student.study_program,
               user_id: user.uid,
               year_of_study: student.year_of_study,
+              group: student.group,
+              faculty: student.faculty,
+              profesor: student.profesor,
               ...(signiture && { signiture: signiture }),
+              ...(profesorSignuture && {
+                profesorSignuture: profesorSignuture,
+              }),
               ...(parseStorageDocs ? parseStorageDocs : undefined),
             });
             alert("Documents saved.");
@@ -230,14 +263,13 @@ export default function Students() {
             setOpenPopup(false);
           } else {
             const updateDocRef = doc(db, "documents", student.document_id);
-    
-            await updateDoc(updateDocRef, {
+            console.log({
               city: student.city,
               degree_id: student.degree_id,
               email: student.email,
               exam_date:
                 typeof student.exam_date === "object"
-                  ? student.exam_date.toLocaleDateString("en-GB")
+                  ? student.exam_date.toLocaleDateString("en-US")
                   : student.exam_date,
               frequency: student.frequency,
               full_name: student.full_name,
@@ -246,12 +278,47 @@ export default function Students() {
               study_program: student.study_program,
               user_id: user.uid,
               year_of_study: student.year_of_study,
+              group: student.group,
+              faculty: student.faculty,
+              profesor: student.profesor,
               ...(student.anexa2 ? { anexa2: student.anexa2 } : undefined),
               ...(student.anexa4 ? { anexa4: student.anexa4 } : undefined),
               ...(student.anexa6 ? { anexa6: student.anexa6 } : undefined),
               ...(student.anexa7 ? { anexa7: student.anexa7 } : undefined),
               ...(student.anexa8 ? { anexa8: student.anexa8 } : undefined),
               ...(signiture && { signiture: signiture }),
+              ...(profesorSignuture && {
+                profesorSignuture: profesorSignuture,
+              }),
+              ...(parseStorageDocs ? parseStorageDocs : undefined),
+            });
+            await updateDoc(updateDocRef, {
+              city: student.city,
+              degree_id: student.degree_id,
+              email: student.email,
+              exam_date:
+                typeof student.exam_date === "object"
+                  ? student.exam_date.toLocaleDateString("en-US")
+                  : student.exam_date,
+              frequency: student.frequency,
+              full_name: student.full_name,
+              gender: student.gender,
+              mobile: student.mobile,
+              study_program: student.study_program,
+              user_id: user.uid,
+              year_of_study: student.year_of_study,
+              group: student.group ?? "",
+              faculty: student.faculty ?? "",
+              profesor: student.profesor ?? "",
+              ...(student.anexa2 ? { anexa2: student.anexa2 } : undefined),
+              ...(student.anexa4 ? { anexa4: student.anexa4 } : undefined),
+              ...(student.anexa6 ? { anexa6: student.anexa6 } : undefined),
+              ...(student.anexa7 ? { anexa7: student.anexa7 } : undefined),
+              ...(student.anexa8 ? { anexa8: student.anexa8 } : undefined),
+              ...(signiture && { signiture: signiture }),
+              ...(profesorSignuture && {
+                profesorSignuture: profesorSignuture,
+              }),
               ...(parseStorageDocs ? parseStorageDocs : undefined),
             });
             alert("Documents updated.");
@@ -364,6 +431,9 @@ export default function Students() {
                   <TableCell>{item.exam_date}</TableCell>
                   <TableCell>{item.study_program}</TableCell>
                   <TableCell>{item.year_of_study}</TableCell>
+                  <TableCell>{item.group}</TableCell>
+                  <TableCell>{item.faculty}</TableCell>
+                  <TableCell>{item.profesor}</TableCell>
                   <TableCell>
                     {item.anexa2 && (
                       <a
@@ -433,6 +503,19 @@ export default function Students() {
                     {item.signiture && (
                       <a
                         href={item.signiture}
+                        style={{ color: "#000" }}
+                        download
+                        rel="noopener noreferrer"
+                        target="_blank"
+                      >
+                        Download
+                      </a>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {item.profesorSignuture && (
+                      <a
+                        href={item.profesorSignuture}
                         style={{ color: "#000" }}
                         download
                         rel="noopener noreferrer"
