@@ -53,24 +53,24 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const headCells = [
-  { id: "full_name", label: "Student Name" },
-  { id: "email", label: "Email Address (Constitutional)" },
-  { id: "city", label: "City" },
-  { id: "mobile", label: "Mobile Number" },
-  { id: "degree", label: "Degree Type" },
-  { id: "frequency", label: "Frequency" },
-  { id: "exam_date", label: "Exam Date" },
-  { id: "study_program", label: "Study Program" },
-  { id: "year_of_study", label: "Year Of Study" },
-  { id: "group", label: "Group" },
+  { id: "full_name", label: "Nume Complet" },
+  { id: "email", label: "Email  (Constitutional)" },
+  { id: "city", label: "Oraș" },
+  { id: "mobile", label: "Număr telefon" },
+  { id: "degree", label: "Tipul de diplomă" },
+  { id: "frequency", label: "Frecvența" },
+  { id: "exam_date", label: "Ziua examinării" },
+  { id: "study_program", label: "Program de studiu" },
+  { id: "year_of_study", label: "Anul de studiu" },
+  { id: "group", label: "Grupa" },
   { id: "faculty", label: "Facultate" },
-  { id: "profesor", label: "Conducator Stiintific" },
+  { id: "profesor", label: "Conducător Științific" },
   { id: "anexa2", label: "Anexa 2" },
   { id: "anexa4", label: "Anexa 4" },
   { id: "anexa6", label: "Anexa 6" },
   { id: "anexa7", label: "Anexa 7" },
   { id: "anexa8", label: "Anexa 8" },
-  { id: "signiture", label: "Signiture" },
+  { id: "signiture", label: "Semnătura" },
   { id: "profesorSignuture", label: "Profesor Signiture" },
   { id: "actions", label: "Actions", disableSorting: true },
 ];
@@ -241,7 +241,7 @@ export default function Students() {
               city: student.city,
               degree_id: student.degree_id,
               email: student.email,
-              exam_date: student.exam_date.toLocaleDateString("en-US"),
+              exam_date: student.exam_date.toLocaleDateString('ko-KR'),
               frequency: student.frequency,
               full_name: student.full_name,
               gender: student.gender,
@@ -269,7 +269,7 @@ export default function Students() {
               email: student.email,
               exam_date:
                 typeof student.exam_date === "object"
-                  ? student.exam_date.toLocaleDateString("en-US")
+                  ? student.exam_date.toLocaleDateString('ko-KR')
                   : student.exam_date,
               frequency: student.frequency,
               full_name: student.full_name,
@@ -298,7 +298,7 @@ export default function Students() {
               email: student.email,
               exam_date:
                 typeof student.exam_date === "object"
-                  ? student.exam_date.toLocaleDateString("en-US")
+                  ? student.exam_date.toLocaleDateString('ko-KR')
                   : student.exam_date,
               frequency: student.frequency,
               full_name: student.full_name,
@@ -382,7 +382,7 @@ export default function Students() {
   return (
     <>
       <PageHeader
-        title="Bachelor's degree/Master Degree registration"
+        title="Înscriere licență/disertație"
         icon={<PeopleOutlineTwoToneIcon fontSize="large" />}
       />
       <Paper className={classes.pageContent}>
