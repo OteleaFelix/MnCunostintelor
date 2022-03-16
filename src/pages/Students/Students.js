@@ -387,18 +387,7 @@ export default function Students() {
       />
       <Paper className={classes.pageContent}>
         <Toolbar>
-          <Controls.Input
-            label="Search Student"
-            className={classes.searchInput}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Search />
-                </InputAdornment>
-              ),
-            }}
-            onChange={handleSearch}
-          />
+        
           <Controls.Button
             text="Add New"
             variant="outlined"
