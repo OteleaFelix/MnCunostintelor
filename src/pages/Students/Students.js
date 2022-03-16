@@ -174,7 +174,7 @@ export default function Students() {
   const addOrEdit = useCallback(
     async (student, resetForm, signiture, profesorSignuture) => {
       const user = JSON.parse(localStorage.getItem("user"));
-
+      console.log({ signiture, profesorSignuture });
       let files = [];
 
       typeof student.anexa2 === "object" &&
@@ -241,7 +241,7 @@ export default function Students() {
               city: student.city,
               degree_id: student.degree_id,
               email: student.email,
-              exam_date: student.exam_date.toLocaleDateString('ko-KR'),
+              exam_date: student.exam_date.toLocaleDateString("ko-KR"),
               frequency: student.frequency,
               full_name: student.full_name,
               gender: student.gender,
@@ -269,7 +269,7 @@ export default function Students() {
               email: student.email,
               exam_date:
                 typeof student.exam_date === "object"
-                  ? student.exam_date.toLocaleDateString('ko-KR')
+                  ? student.exam_date.toLocaleDateString("ko-KR")
                   : student.exam_date,
               frequency: student.frequency,
               full_name: student.full_name,
@@ -298,7 +298,7 @@ export default function Students() {
               email: student.email,
               exam_date:
                 typeof student.exam_date === "object"
-                  ? student.exam_date.toLocaleDateString('ko-KR')
+                  ? student.exam_date.toLocaleDateString("ko-KR")
                   : student.exam_date,
               frequency: student.frequency,
               full_name: student.full_name,
@@ -387,7 +387,6 @@ export default function Students() {
       />
       <Paper className={classes.pageContent}>
         <Toolbar>
-        
           <Controls.Button
             text="Add New"
             variant="outlined"
@@ -551,7 +550,3 @@ export default function Students() {
     </>
   );
 }
-
-
-
-

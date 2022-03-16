@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from "react";
 import ReCAPTCHA from "react-google-recaptcha";
-import { useHistory } from "react-router-dom";
+import { useHistory, Link } from "react-router-dom";
 import {
   GoogleAuthProvider,
   getAuth,
@@ -31,6 +31,7 @@ export const SignUp = () => {
       try {
         const res = await signInWithPopup(auth, googleProvider);
         const user = res.user;
+        localStorage.setItem("user", JSON.stringify(res.user));
         const q = query(collection(db, "users"), where("uid", "==", user.uid));
         const docs = await getDocs(q);
         if (docs.docs.length === 0) {
@@ -55,7 +56,6 @@ export const SignUp = () => {
   const register = useCallback(async () => {
     if (recaptcha) {
       try {
-        console.log(email, password);
         if (password !== confirmPassword) {
           setConfirmPassword((prev) => ({
             ...prev,
@@ -68,6 +68,7 @@ export const SignUp = () => {
             password
           );
           const user = res.user;
+          localStorage.setItem("user", JSON.stringify(res.user));
           setConfirmPassword((prev) => ({
             ...prev,
             error: "",
@@ -152,6 +153,7 @@ export const SignUp = () => {
                 id="password"
                 class="form__input"
                 name="password"
+                min="6"
                 type="password"
                 placeholder="Pick a strong password"
                 onChange={(event) => setPassword(event.target.value)}
@@ -165,6 +167,7 @@ export const SignUp = () => {
                 id="confirm-password"
                 class="form__input"
                 name="confirm-password"
+                min="6"
                 type="password"
                 placeholder="Confirm strong password"
                 onChange={(event) => {
@@ -197,7 +200,7 @@ export const SignUp = () => {
 
           <div class="text--center">
             <p>
-              Already have an account? <a href="/login">Log in</a>
+              Already have an account? <Link to="/login">Log in</Link>
             </p>
           </div>
         </main>

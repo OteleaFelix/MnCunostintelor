@@ -12,7 +12,7 @@ import "./index.css";
 import { ReactComponent as Google } from "../assets/svgs/google.svg";
 import { ReactComponent as Facebook } from "../assets/svgs/facebook.svg";
 import { db, firebaseApp } from "../firebase";
-import { useHistory } from "react-router-dom";
+import { useHistory, Link } from "react-router-dom";
 
 export const Login = () => {
   const [email, setEmail] = useState();
@@ -154,7 +154,8 @@ export const Login = () => {
 
             <div class="text--center">
               <p>
-                Don't have an account? <a href="/sign-up">Sign up</a>
+                Don't have an account?
+                <Link to="/sign-up">Sign up</Link>
               </p>
             </div>
           </main>
