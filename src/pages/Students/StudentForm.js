@@ -590,8 +590,25 @@ export default function StudentForm(props) {
                   </div>
                 </div>
               </div>
-           
+              <Controls.Checkbox
+            name="checkboxObligatii"
+            label="Am luat la cunoștință obligațiile și drepturile care îmi revin prin această înscriere."
+            value={values.checkboxObligatii}
+            onChange={handleInputChange}
+            error={errors.checkboxObligatii}
+          />
+          
+          
+          <Controls.Checkbox
+            name="checkboxCorectitudine"
+            label="Confirm corectitudinea datelor introduse și sunt de acord cu prelucrarea acestora în toate scopurile ce derivă din procesul de înscriere."
+            value={values.checkboxCorectitudine}
+            onChange={handleInputChange}
+            error={errors.checkboxCorectitudine}
+          /> 
             </div>
+
+
             
             <div style={{ marginTop: 15 }}>
               <Controls.Button type="submit" text="Submit" />
